@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="css/jqtree.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+
+    <style>
+        .jqtree-element.jqtree_common{
+            background-color: #f7f7f7 !important;
+            margin: 7px;
+            border-radius: 10px;
+            padding: 10px;
+            border: solid 2px white;
+        }
+
+        ul.jqtree-tree li.jqtree-selected{
+            background: none;
+        }
+
+        .jqtree-selected{
+            background-color: #cccccc;
+            background: none;
+        }
+
+        .jqtree-title.jqtree_common{
+            outline: none;
+        }
+
+        li ul.jqtree_common.jqtree-dnd{
+            border-left: solid 2px blue;
+            margin-left: 30px;
+        }
+    </style>
+</head>
+
+
+<body>
+    <div class="container pb-5">
+        <div class="row">
+            <div class="col-sm-8">
+                <div id="tree1"></div>
+
+            </div>
+        </div>
+    </div>
+
+    
+</body>
+
+
+<script src="js/tree.jquery.js"></script>
+
+<script>
+    var data = [
+        {
+            id: 1,
+            name: 'This is my parent task',
+            children: [
+                { id: 2, name: 'child1' },
+                { id: 3, name: 'child2' },
+                { id: 4, name: 'child3' },
+                { id: 5, name: 'child4' },
+                { id: 6, name: 'child5' },
+                { id: 7, name: 'child6' }
+            ]
+        },
+        {
+            id: 8, 
+            name: 'node2',
+            children: [
+                { id: 9, name: 'child3' }
+            ]
+        }
+    ];
+
+    var $tree = $("#tree1"); 
+
+    $(function() {
+        $tree.tree({
+            data: data,
+            dragAndDrop: true,
+            autoOpen: true,
+            closedIcon: $('<i class="material-icons">chevron_right</i>'),
+            openedIcon: $('<i class="material-icons">expand_more</i>'),
+
+            onCreateLi: function(node, $li, is_selected) {
+        
+                // Add 'icon' span before title
+                
+                
+                $li.find('.jqtree-element .jqtree-title').css({
+                    "width": "80%",
+                });
+
+                $li.find(".jqtree-element .jqtree-title").attr("id", `title-${node.id}`);
+
+                $li.find('.jqtree-element .jqtree-title').css("width", "80%")
+                
+                $li.find('.jqtree-element').append(
+                    `<div class="text-right done-icon" style="width:20%" class="edit">
+                        <i class="material-icons" data-task-id="${node.id}">check_box_outline_blank</i>
+                    </div>`
+                );
+            },
+
+            onCanMove: function(node) {
+                if (! node.parent.parent) {
+                    // Example: Cannot move root node
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            },
+
+
+            onCanMoveTo: function(moved_node, target_node, position) {
+                console.log("--------------MOVED--------------");
+                console.log(moved_node);
+                console.log(moved_node.parent);
+                console.log("--------------TARGET--------------");
+                console.log(target_node);
+                console.log(target_node.parent);
+
+                console.log(position);
+
+
+                if (position == "inside") {
+                    if (target_node.parent.name) {
+                        return false;
+                    } else {
+                        if(target_node == moved_node.parent || target_node.parent == moved_node.parent){
+                            return true
+                        }else{
+                            return false
+                        }
+                    }
+
+                }else if (position == "after") {
+                    if (target_node.parent.name) {
+                        if (target_node.parent == moved_node.parent) {
+                            return true;
+                        }else{
+                            return false;
+                        }
+                    }else{
+                        return false;
+                    }
+                }
+                
+
+                // if (target_node.is_menu) {
+                //     // Example: can move inside menu, not before or after
+                //     return (position == 'inside');
+                // }
+                // else {
+                //     return true;
+                // }
+            }
+        });
+    });
+
+    $tree.on( 'click', '.done-icon', function(e) {
+        // Get the id from the 'node-id' data property
+        console.log(e.target);
+        var task_id = $(e.target).data('task-id');
+        $(e.target).text("check_box");
+        $(e.target).addClass("text-success");
+        $(`#title-${task_id}`).css("text-decoration", "line-through");
+        
+        console.log(task_id);
+        // Get the node from the tree
+        var node = $tree.tree('getNodeById', task_id);
+
+        if (node) {
+            // Display the node name
+            setTimeout(() => {
+                $tree.tree('removeNode', node);
+            }, 1000);
+        }
+    })
+
+    // $(".done-icon").on("click", function () {
+    //     let task_id = $(this).attr("data-task-id");
+    //     console.log(task_id); 
+    // });
+
+
+</script>
+
+</html>
